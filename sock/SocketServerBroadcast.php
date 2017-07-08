@@ -41,6 +41,7 @@ class SocketServerBroadcast extends SocketServer
         // Converts the Hexadecimal to a Integer
         $len = $this->hexToInt($header);
         // Stores the full message as array
+	    //var_dump(fread($this->pipe, $len));
         $message = unserialize(fread($this->pipe, $len));
 
         // If the message type is a message
@@ -48,23 +49,27 @@ class SocketServerBroadcast extends SocketServer
         	// Get the client's object that sent the message using its pid
 	        $client = $this->connections[ $message['pid'] ];
 
-
 	        if(substr( $message['data'], 0, 2 ) == "!!" ){
 		        // Remove the first 2 chars , whitespace, dots and carriage returns
 		        $command = substr($message['data'], 2);
 		        $command = str_replace( array( '.', ' ', "\n", "\t", "\r" ), '', $command );
 
-				var_dump($command);
-				$cmdClass = new commands($client);
+				//var_dump($command);
+
+		        $cmdClass = new commands($client);
 				$cmdClass->runCmd($command);
 
 	        }else {
 
+		        $message['data'] = str_replace( array( '.', "\n","\t", "\r" ), '', $message['data'] );
 		        // Build a string to print the clients IP , its pid , and the message text itself
+
+		       // var_dump($message);
 		        $msg = sprintf( '[%s]: %s', $client->getName(), $message['data'] );
 
 		        // Add some text to start of message
-		        printf( "Broadcast: %s", $msg );
+
+		        printf( "Broadcast: %s\n", $msg );
 
 		        // Loop through each connection with a key of the pid and a value of the client
 		        foreach ( $this->connections as $pid => $conn ) {
@@ -78,7 +83,7 @@ class SocketServerBroadcast extends SocketServer
 		        }
 	        }
         // If the message type is a disconnect
-        } elseif ($message['type'] == 'disc') {
+        }elseif ($message['type'] == 'disc') {
             // Unset the pid from the connection array
             unset($this->connections[$message['pid']]);
         }

@@ -13,7 +13,7 @@ class SocketClient {
 	private $connection;
 	private $address;
 	private $port;
-	private $name;
+	protected $name;
 	public $nameSet;
 
 	public function __construct( $connection ) {
@@ -36,11 +36,10 @@ class SocketClient {
 	public function send( $message ) {
 		$new = $message;
 		// Catch the error if it fails to write to the socket to a specific client : TODO : add the client (pid) number to error
-		//try {
-			socket_write( $this->connection, $new, strlen( $new ) );
-		//} catch ( \Exception $e ) {
-		//	printf( "Error", $e );
-		//}
+		if(!socket_write( $this->connection, $new, strlen( $new ) )) {
+			print_r("Error with sending data to connection\n");
+			$this->connection->close();
+		}
 	}
 
 	/**
